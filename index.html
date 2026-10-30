@@ -3995,6 +3995,7 @@ function core(s,depth){
    Cada texto se traduce una sola vez y queda guardado en este navegador. Los datos no se tocan. */
 var MTK='aq-mt',MTCK='aq-mt-cfg',MT={},MTCFG={on:true,email:''},MTQ=[],MTSEEN={},MTFAIL={},MTBUSY=false,MTDOWN=0,MTON=true,MTMISS=false,MTFAILED=false,MTREC=null,NAMES=[],MTT=null,MTST={eng:'',err:''},STARTED=false;
 try{MT=JSON.parse(localStorage.getItem(MTK)||'{}')||{}}catch(e){MT={}}
+try{if(localStorage.getItem('aq-mt-gl')!=='1'){MT={};localStorage.removeItem(MTK);localStorage.setItem('aq-mt-gl','1')}}catch(e){}
 try{var mc0=JSON.parse(localStorage.getItem(MTCK)||'null');if(mc0&&typeof mc0==='object')MTCFG=Object.assign(MTCFG,mc0)}catch(e){}
 var CYR=/[Ѐ-ӿ]/,LAT=/[A-Za-zÁÉÍÓÚáéíóúÑñü]/,ESH=/[áéíóúñ¿¡]|(^|[^a-záéíóúñ])(de|del|la|las|el|los|que|con|para|por|una|en|al|sin|se|y)([^a-záéíóúñ]|$)/i;
 var SKIPW=['WhatsApp','Excel','PDF','Catapult','STATSports','Polar','GPEXE','YouTube','Vimeo','Google Drive','Google','AQ Carga','Quihillaborda','Telegram'];
@@ -4073,7 +4074,112 @@ function myMem(text,sl,tl){
   var ps=mtPieces(text,sl==='ru'?220:380);
   return ps.reduce(function(p,q){return p.then(function(acc){return mmOne(q,sl,tl).then(function(r){acc.push(r);return acc})})},Promise.resolve([])).then(function(a){return a.join(' ')});
 }
-function mtTranslate(text,sl,tl){return chromeTr(text,sl,tl).catch(function(){return myMem(text,sl,tl)})}
+/* Glosario de fútbol y preparación física: estos términos salen siempre igual, no los decide el traductor automático.
+   Cada fila: español (singular, plural), inglés (singular, plural), ruso (singular, plural). */
+var GLOS=[
+['arquero','arqueros','goalkeeper','goalkeepers','вратарь','вратари'],
+['portero','porteros','goalkeeper','goalkeepers','вратарь','вратари'],
+['defensor central','defensores centrales','centre-back','centre-backs','центральный защитник','центральные защитники'],
+['defensa central','defensas centrales','centre-back','centre-backs','центральный защитник','центральные защитники'],
+['zaguero','zagueros','centre-back','centre-backs','центральный защитник','центральные защитники'],
+['defensor','defensores','defender','defenders','защитник','защитники'],
+['lateral izquierdo','laterales izquierdos','left-back','left-backs','левый защитник','левые защитники'],
+['lateral derecho','laterales derechos','right-back','right-backs','правый защитник','правые защитники'],
+['volante central','volantes centrales','defensive midfielder','defensive midfielders','опорный полузащитник','опорные полузащитники'],
+['mediocampista','mediocampistas','midfielder','midfielders','полузащитник','полузащитники'],
+['volante','volantes','midfielder','midfielders','полузащитник','полузащитники'],
+['extremo','extremos','winger','wingers','вингер','вингеры'],
+['centrodelantero','centrodelanteros','striker','strikers','центральный нападающий','центральные нападающие'],
+['delantero','delanteros','forward','forwards','нападающий','нападающие'],
+['titular','titulares','starter','starters','игрок основы','игроки основы'],
+['suplente','suplentes','substitute','substitutes','запасной','запасные'],
+['cuerpo técnico','','coaching staff','','тренерский штаб',''],
+['preparador físico','preparadores físicos','fitness coach','fitness coaches','тренер по физподготовке','тренеры по физподготовке'],
+['kinesiólogo','kinesiólogos','physio','physios','физиотерапевт','физиотерапевты'],
+['kinesiología','','physiotherapy','','физиотерапия',''],
+['pelota parada','pelotas paradas','set piece','set pieces','стандарт','стандарты'],
+['tiro libre','tiros libres','free kick','free kicks','штрафной удар','штрафные удары'],
+['tiro de esquina','tiros de esquina','corner','corners','угловой','угловые'],
+['córner','córners','corner','corners','угловой','угловые'],
+['saque de banda','saques de banda','throw-in','throw-ins','вбрасывание','вбрасывания'],
+['rondo','rondos','rondo','rondos','рондо','рондо'],
+['juego reducido','juegos reducidos','small-sided game','small-sided games','игра в малых составах','игры в малых составах'],
+['contraataque','contraataques','counter-attack','counter-attacks','контратака','контратаки'],
+['presión alta','','high press','','высокий прессинг',''],
+['arco','arcos','goal','goals','ворота','ворота'],
+['cancha','canchas','pitch','pitches','поле','поля'],
+['entrada en calor','','warm-up','','разминка',''],
+['vuelta a la calma','','cool-down','','заминка',''],
+['elongación','elongaciones','stretching','stretching','растяжка','растяжка'],
+['trote','trotes','jogging','jogging','лёгкий бег','лёгкий бег'],
+['pique','piques','sprint','sprints','рывок','рывки'],
+['aceleración','aceleraciones','acceleration','accelerations','ускорение','ускорения'],
+['desaceleración','desaceleraciones','deceleration','decelerations','торможение','торможения'],
+['cambio de dirección','cambios de dirección','change of direction','changes of direction','смена направления','смены направления'],
+['resistencia','','endurance','','выносливость',''],
+['potencia','','power','','мощность',''],
+['pliometría','','plyometrics','','плиометрика',''],
+['activación','activaciones','activation','activations','активация','активации'],
+['microciclo','microciclos','microcycle','microcycles','микроцикл','микроциклы'],
+['pretemporada','pretemporadas','preseason','preseasons','предсезонка','предсезонки'],
+['doble turno','dobles turnos','double session','double sessions','двухразовая тренировка','двухразовые тренировки'],
+['regenerativo','regenerativos','recovery session','recovery sessions','восстановительная тренировка','восстановительные тренировки'],
+['compensatorio','compensatorios','compensatory session','compensatory sessions','компенсаторная тренировка','компенсаторные тренировки'],
+['carga externa','','external load','','внешняя нагрузка',''],
+['carga interna','','internal load','','внутренняя нагрузка',''],
+['carga','cargas','load','loads','нагрузка','нагрузки'],
+['sobrecarga','sobrecargas','overload','overloads','перегрузка','перегрузки'],
+['esfuerzo percibido','','perceived exertion','','воспринимаемое усилие',''],
+['readaptación','','return-to-play','','реабилитация',''],
+['molestia','molestias','discomfort','discomfort','дискомфорт','дискомфорт'],
+['contractura','contracturas','muscle tightness','muscle tightness','мышечный спазм','мышечные спазмы'],
+['desgarro','desgarros','muscle tear','muscle tears','надрыв мышцы','надрывы мышц'],
+['distensión','distensiones','muscle strain','muscle strains','растяжение мышцы','растяжения мышц'],
+['esguince','esguinces','sprain','sprains','растяжение связок','растяжения связок'],
+['pubalgia','','groin pain','','пубалгия',''],
+['aductor','aductores','adductor','adductors','приводящая мышца','приводящие мышцы'],
+['isquiotibial','isquiotibiales','hamstring','hamstrings','мышца задней поверхности бедра','мышцы задней поверхности бедра'],
+['cuádriceps','','quadriceps','','квадрицепс',''],
+['gemelo','gemelos','calf','calves','икроножная мышца','икроножные мышцы'],
+['sóleo','','soleus','','камбаловидная мышца',''],
+['tobillo','tobillos','ankle','ankles','голеностоп','голеностопы'],
+['lesionado','lesionados','injured player','injured players','травмированный игрок','травмированные игроки']
+];
+var GLRX=null;
+function glEsc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+function glBuild(){
+  GLRX={};
+  ['es','en','ru'].forEach(function(sl,si){
+    var list=[];GLOS.forEach(function(r){[0,1].forEach(function(n){var f=r[si*2+n];if(f)list.push({f:f,r:r,n:n})})});
+    list.sort(function(a,b){return b.f.length-a.f.length});
+    GLRX[sl]=list.map(function(x){x.rx=new RegExp('(?<![\\p{L}\\p{N}])'+glEsc(x.f)+'(?![\\p{L}\\p{N}])','giu');return x});
+  });
+}
+function glCase(src,dst){return src.charAt(0)!==src.charAt(0).toLowerCase()?dst.charAt(0).toUpperCase()+dst.slice(1):dst}
+/* Cambia los términos del glosario por los del idioma de destino antes de mandar el texto al traductor */
+function mtGlos(t,sl,tl){
+  if(!GLRX)glBuild();
+  var ti=['es','en','ru'].indexOf(tl),out=t,used=[];
+  (GLRX[sl]||[]).forEach(function(x){
+    out=out.replace(x.rx,function(m){var d=x.r[ti*2+x.n]||x.r[ti*2];var k='⁣'+used.length+'⁣';used.push(glCase(m,d));return k});
+  });
+  if(!used.length)return {t:t,done:false};
+  if(/^⁣\d+⁣$/.test(out.trim()))return {t:used[+out.trim().slice(1,-1)],done:true};
+  /* al inglés y al español: el término va directo en el texto. Al ruso: una marca que el traductor respeta, y después el término */
+  var direct=out.replace(/⁣(\d+)⁣/g,function(m,i){return used[+i]});
+  if(tl!=='ru')return {t:direct,done:false};
+  return {t:out.replace(/⁣(\d+)⁣/g,function(m,i){return 'GLX'+i}),ph:used,alt:direct,done:false};
+}
+function glBack(r,used){
+  var miss=used.some(function(x,i){return !new RegExp('GLX'+i+'(?!\\d)').test(r)});if(miss)return null;
+  return r.replace(/GLX(\d+)/g,function(m,i,o){var d=used[+i];return o===0||/[.!?]\s*$/.test(r.slice(0,o))?d.charAt(0).toUpperCase()+d.slice(1):d});
+}
+function mtEngine(text,sl,tl){return chromeTr(text,sl,tl).catch(function(){return myMem(text,sl,tl)})}
+function mtTranslate(text,sl,tl){
+  var g=mtGlos(text,sl,tl);if(g.done)return Promise.resolve(g.t);
+  if(!g.ph)return mtEngine(g.t,sl,tl);
+  return mtEngine(g.t,sl,tl).then(function(r){var b=glBack(r,g.ph);return b!=null?b:mtEngine(g.alt,sl,tl)});
+}
 var MTSV=null;
 function mtSave(){clearTimeout(MTSV);MTSV=setTimeout(function(){try{var s=JSON.stringify(MT);if(s.length>1800000){Object.keys(MT).forEach(function(k){var ks=Object.keys(MT[k]);ks.slice(0,Math.floor(ks.length/2)).forEach(function(x){delete MT[k][x]})});s=JSON.stringify(MT)}localStorage.setItem(MTK,s)}catch(e){}},400)}
 function mtRefresh(){clearTimeout(MTT);MTT=setTimeout(function(){CACHE=Object.create(null);if(document.body){walk(document.body,true);mtHints(document)}},30)}
