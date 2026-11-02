@@ -4384,6 +4384,10 @@ function mon(s){var d=pd(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 function hm2min(t){if(!t||!/^\d{1,2}:\d{2}$/.test(t))return null;var p=t.split(':').map(Number);return p[0]*60+p[1]}
 function min2hm(m){m=((Math.round(m)%1440)+1440)%1440;return pad(Math.floor(m/60))+':'+pad(m%60)}
+/* Horarios en una lista cada 5 minutos: el campo de hora del navegador no se entiende igual en todos lados (Safari no abre ningún reloj) */
+function timeOpts(v,none){v=v||'';var o='<option value=""'+(v?'':' selected')+'>'+(none||'Sin hora')+'</option>',put=!v;
+  for(var m=300;m<1440;m+=5){var t=min2hm(m);if(!put&&v<t){o+='<option value="'+esc(v)+'" selected>'+esc(v)+'</option>';put=true}o+='<option value="'+t+'"'+(t===v?' selected':'')+'>'+t+'</option>';if(t===v)put=true}
+  if(!put)o+='<option value="'+esc(v)+'" selected>'+esc(v)+'</option>';return o}
 
 /* ── Números ── */
 var NF0=new Intl.NumberFormat(LANG==='en'?'en-GB':LANG==='ru'?'ru-RU':'es-AR',{maximumFractionDigits:0});
@@ -5938,7 +5942,7 @@ function vPrograma(){
   if(U.progMode==='sheet'){
     // ficha editable
     h+='<section class="panel"><div class="ph"><h2><span class="mk"></span>'+esc(x.type==='partido'?'Partido · vs '+rivalTxt(x):TYPES[x.type].l+(isGym(x.type)&&x.focus?' · '+x.focus:''))+'</h2><button class="btn sm ghost" type="button" data-act="day" data-d="'+d+'">Tipo, foco y más datos</button></div>'+
-      '<div class="ficha"><div class="f"><label for="sf-time">Hora de inicio</label><input class="in" type="time" id="sf-time" data-chg="sfield" data-f="time" value="'+esc(x.time||'')+'"></div>'+
+      '<div class="ficha"><div class="f"><label for="sf-time">Hora de inicio</label><select class="in" id="sf-time" data-chg="sfield" data-f="time">'+timeOpts(x.time)+'</select></div>'+
       '<div class="f"><label>Termina</label><output class="in out" id="sf-end">'+(st!=null&&tot?min2hm(st+tot):'—')+'</output></div>'+
       '<div class="f"><label for="sf-place">Lugar</label><input class="in" id="sf-place" data-chg="sfield" data-f="place" value="'+esc((pl&&pl.place)||'')+'" placeholder="Campo 2, estadio, gimnasio"></div>'+
       '<div class="f"><label for="sf-load">Carga prevista</label><select class="in" id="sf-load" data-chg="sfield" data-f="load">'+LOADS.map(function(l){return '<option value="'+l+'"'+(l===((pl&&pl.load)||'')?' selected':'')+'>'+(l||'Sin definir')+'</option>'}).join('')+'</select></div>'+
@@ -6106,7 +6110,7 @@ function vParte(){
     '<div class="panel tile"><span class="lbl">Esfuerzo</span><span class="v">'+(stt&&stt.rpe!=null?NF1.format(stt.rpe):'—')+'<small> RPE</small></span><span class="s">'+(stt&&stt.srpe!=null?NF0.format(stt.srpe)+' UA de carga interna':'Cargá el RPE de cada jugador')+'</span></div></div>';
   // datos de la sesión
   h+='<section class="panel"><div class="ph"><h2><span class="mk"></span>Datos de la sesión</h2>'+(pl&&pl.blocks.length?'<button class="btn sm ghost" type="button" data-act="goprog" data-d="'+d+'">Ver programa</button>':'')+'</div><div class="ficha">'+
-    '<div class="f"><label for="pt-start">Inicio real</label><input class="in" type="time" id="pt-start" data-chg="pfield" data-f="start" value="'+esc(ini)+'"></div>'+
+    '<div class="f"><label for="pt-start">Inicio real</label><select class="in" id="pt-start" data-chg="pfield" data-f="start">'+timeOpts(ini)+'</select></div>'+
     '<div class="f"><label>Fin</label><output class="in out">'+(fin||'—')+'</output></div>'+
     '<div class="f"><label for="pt-place">Lugar</label><input class="in" id="pt-place" data-chg="pfield" data-f="place" value="'+esc((pl&&pl.place)||'')+'" placeholder="Campo 2, estadio"></div>'+
     '<div class="f wide"><label for="pt-clim">Clima y estado del campo</label><input class="in" id="pt-clim" data-chg="pfield" data-f="climate" value="'+esc(pa?pa.climate:'')+'" placeholder="Ej.: nublado, 7 °C, campo pesado"></div></div></section>';
@@ -6124,7 +6128,7 @@ function vParte(){
   var evs=pa?pa.events:[];
   h+='<section class="panel paper"><div class="ph"><h2><span class="mk"></span>Eventualidades</h2><button class="btn sm pri" type="button" data-act="evadd">Agregar</button></div>'+
     (evs.length?'<div class="sheet-w"><table class="sheet sheet-e"><colgroup><col style="width:96px"><col style="width:200px"><col style="width:150px"><col><col style="width:64px"></colgroup><thead><tr><th>Hora</th><th>Jugador</th><th>Tipo</th><th>Qué pasó</th><th></th></tr></thead><tbody>'+
-      evs.map(function(e,i){return '<tr><td><input class="sc" type="time" data-chg="evf" data-i="'+i+'" data-f="t" value="'+esc(e.t||'')+'" aria-label="Hora"></td><td><select class="sc" data-chg="evf" data-i="'+i+'" data-f="pid" aria-label="Jugador"><option value="">Grupo / general</option>'+sortedPlayers().map(function(p){return '<option value="'+p.id+'"'+(p.id===e.pid?' selected':'')+'>'+esc(p.name)+'</option>'}).join('')+'</select></td><td><select class="sc" data-chg="evf" data-i="'+i+'" data-f="type" aria-label="Tipo">'+optList(EVT,e.type)+'</select></td><td><textarea class="sc" rows="1" data-inp="evdesc" data-i="'+i+'" placeholder="Describí lo que pasó" aria-label="Descripción">'+esc(e.desc||'')+'</textarea></td><td class="acts"><button class="btn sm ghost" type="button" data-act="evdel" data-i="'+i+'" data-confirm="¿Borrar?" aria-label="Borrar eventualidad">✕</button></td></tr>'}).join('')+'</tbody></table></div>':'<div class="pb"><p class="note">Lesiones, molestias, golpes, cambios de horario, problemas de campo o de clima, cuestiones de disciplina. Cada una con su hora y el jugador involucrado.</p></div>')+'</section>';
+      evs.map(function(e,i){return '<tr><td><select class="sc" data-chg="evf" data-i="'+i+'" data-f="t" aria-label="Hora">'+timeOpts(e.t,'—')+'</select></td><td><select class="sc" data-chg="evf" data-i="'+i+'" data-f="pid" aria-label="Jugador"><option value="">Grupo / general</option>'+sortedPlayers().map(function(p){return '<option value="'+p.id+'"'+(p.id===e.pid?' selected':'')+'>'+esc(p.name)+'</option>'}).join('')+'</select></td><td><select class="sc" data-chg="evf" data-i="'+i+'" data-f="type" aria-label="Tipo">'+optList(EVT,e.type)+'</select></td><td><textarea class="sc" rows="1" data-inp="evdesc" data-i="'+i+'" placeholder="Describí lo que pasó" aria-label="Descripción">'+esc(e.desc||'')+'</textarea></td><td class="acts"><button class="btn sm ghost" type="button" data-act="evdel" data-i="'+i+'" data-confirm="¿Borrar?" aria-label="Borrar eventualidad">✕</button></td></tr>'}).join('')+'</tbody></table></div>':'<div class="pb"><p class="note">Lesiones, molestias, golpes, cambios de horario, problemas de campo o de clima, cuestiones de disciplina. Cada una con su hora y el jugador involucrado.</p></div>')+'</section>';
   // asistencia + derecha
   h+='<div class="grid g-6-6"><div class="col">';
   h+='<section class="panel paper"><div class="ph"><h2><span class="mk"></span>Asistencia y esfuerzo</h2><button class="btn sm ghost" type="button" data-act="pallok">Todos presentes</button></div><div class="attg">'+
@@ -7179,7 +7183,7 @@ function dayDrawer(d,presetType){
   var h=dHead((isNew?'Nuevo día':'Editar día')+(mdLabel(d)?' · '+mdLabel(d):''),esc(cap(dLong(d))))+'<div class="dbody">';
   h+='<div class="f"><label for="dd-date">Fecha</label><input class="in" type="date" id="dd-date" value="'+d+'"></div>';
   h+='<div class="sect"><span class="lbl">Tipo de día</span><div class="chips">'+TORDER.map(function(k){return '<label class="chip"><input type="radio" name="dtype" value="'+k+'"'+(k===t?' checked':'')+' data-chg="dtype"><span><i class="ts '+k+'"></i>'+TYPES[k].l+'</span></label>'}).join('')+'</div></div>';
-  h+='<div class="fg"><div class="f"><label for="dd-time">Hora de inicio</label><input class="in" type="time" id="dd-time" value="'+esc(x?x.time:'')+'"></div>';
+  h+='<div class="fg"><div class="f"><label for="dd-time">Hora de inicio</label><select class="in" id="dd-time">'+timeOpts(x?x.time:'')+'</select></div>';
   h+='<div class="f" id="dd-focus-w"'+(isGym(t)?'':' hidden')+'><label for="dd-focus">Foco del gimnasio</label><select class="in" id="dd-focus"><option value="">Sin definir</option>'+FOCUS.map(function(f){return '<option'+(x&&x.focus===f?' selected':'')+'>'+f+'</option>'}).join('')+'</select></div></div>';
   h+='<div class="sect" id="dd-match"'+(t==='partido'?'':' hidden')+'><h3><span class="mk"></span>Partido</h3><div class="fg"><div class="f full"><label for="dd-rival">Rival</label><input class="in" id="dd-rival" value="'+esc(m.rival||'')+'" placeholder="Nombre del rival"></div>'+
     '<div class="f"><label for="dd-cond">Condición</label><select class="in" id="dd-cond"><option value="L"'+(m.cond==='L'?' selected':'')+'>Local</option><option value="V"'+(m.cond==='V'?' selected':'')+'>Visitante</option></select></div><div class="f"><label for="dd-comp">Competencia</label><input class="in" id="dd-comp" value="'+esc(m.comp||'')+'" placeholder="Liga, Copa, amistoso"></div>'+
@@ -7764,7 +7768,7 @@ function vMicro(){
   days.forEach(function(dj){var xj=S.days[dj],pj=planOf(dj),isM=xj&&xj.type==='partido',st=parteStats(dj),ng=xj?Object.keys(xj.gps||{}).length:0;
     h+='<tr data-d="'+dj+'" class="'+(isM?'mrow':'')+'"><td class="tx"><b>'+cap(dShort(dj))+'</b></td><td class="ro">'+(mdLabel(dj,mds)||'—')+'</td>'+
       '<td><select class="sc" data-chg="wtype" aria-label="Sesión del '+esc(dShort(dj))+'"><option value="">Sin plan</option>'+TORDER.map(function(k){return '<option value="'+k+'"'+(xj&&xj.type===k?' selected':'')+'>'+TYPES[k].l+'</option>'}).join('')+'</select></td>'+
-      '<td><input class="sc" type="time" data-chg="wfield" data-f="time" value="'+esc(xj&&xj.time||'')+'"'+(xj?'':' disabled')+' aria-label="Hora"></td>'+
+      '<td><select class="sc" data-chg="wfield" data-f="time"'+(xj?'':' disabled')+' aria-label="Hora">'+timeOpts(xj&&xj.time,'—')+'</select></td>'+
       '<td>'+(xj&&isGym(xj.type)?'<select class="sc" data-chg="wfield" data-f="focus" aria-label="Foco"><option value="">—</option>'+FOCUS.map(function(f){return '<option value="'+esc(f)+'"'+(xj.focus===f?' selected':'')+'>'+f+'</option>'}).join('')+'</select>':'<span class="tx dim">—</span>')+'</td>'+
       '<td>'+(isM?'<span class="tx"><b>vs '+esc(rivalTxt(xj))+'</b>'+(resTxt(xj)?' · '+resTxt(xj):'')+'</span>':'<input class="sc" data-chg="wfield" data-f="notes" value="'+esc(xj&&xj.notes||'')+'"'+(xj?'':' disabled')+' placeholder="Objetivo" aria-label="Objetivo">')+'</td>'+
       '<td>'+(xj&&!isM&&xj.type!=='descanso'?'<select class="sc lsel l'+loadIdx(dj)+'" data-chg="wload" aria-label="Carga prevista">'+LOADS.map(function(l,i){return '<option value="'+l+'"'+(i===loadIdx(dj)?' selected':'')+'>'+(l||'Sin definir')+'</option>'}).join('')+'</select>':'<span class="tx dim">—</span>')+'</td>'+
