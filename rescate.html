@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>AQ Carga · Diagnóstico de datos</title>
+<style>
+:root{--navy:#0B1526;--navy-2:#0F1C31;--red:#E5202E;--ink:#F2F4F7;--soft:#C4CDD9;--mute:#8A97AB;--line:rgba(196,205,217,.16);--ok:#2FB57A;--warn:#E8A33D}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--soft);font:16px/1.55 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;padding:24px 16px 48px}
+main{max-width:720px;margin:0 auto}
+h1{color:var(--ink);font-size:28px;line-height:1.15;margin-bottom:8px}
+h2{color:var(--ink);font-size:18px;margin:26px 0 10px}
+p{margin-bottom:10px}
+b{color:var(--ink)}
+.box{background:var(--navy-2);border:1px solid var(--line);border-left:4px solid var(--mute);padding:14px 16px;margin-bottom:10px}
+.box.ok{border-left-color:var(--ok)}.box.warn{border-left-color:var(--warn)}.box.bad{border-left-color:var(--red)}
+.box h3{color:var(--ink);font-size:16px;margin-bottom:6px}
+.box ul{list-style:none;display:grid;gap:3px;font-size:15px}
+.mono{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mute);word-break:break-all}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 8px}
+button{font:600 16px/1 system-ui,-apple-system,sans-serif;padding:15px 20px;border:0;border-radius:3px;background:var(--red);color:#fff;cursor:pointer}
+button.sec{background:#1C3152;color:var(--ink)}
+button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.note{font-size:14px;color:var(--mute)}
+#msg{min-height:1.5em;color:var(--ok);font-weight:600}
+</style>
+</head>
+<body>
+<main>
+  <h1>Diagnóstico de datos de AQ Carga</h1>
+  <p>Esta página <b>solo mira</b> lo que hay guardado de AQ Carga en este navegador. <b>No cambia ni borra nada.</b></p>
+  <div id="out"><p>Revisando…</p></div>
+  <div class="btns">
+    <button type="button" id="dl">Descargar el archivo de diagnóstico</button>
+    <button type="button" class="sec" id="cp">Copiar el resumen</button>
+  </div>
+  <p id="msg" aria-live="polite"></p>
+  <p class="note">Mandale a Seba por WhatsApp el archivo descargado, o el resumen copiado. Si usás la app en más de un navegador (Safari y Chrome), abrí esta página en cada uno.</p>
+</main>
+<script>
+/* Diagnóstico: lee el estado guardado de AQ Carga (todas las versiones), las traducciones y las imágenes, y arma un resumen y un archivo. No escribe nada. */
+(function(){
+  var KEYS=[['aq-carga-ajmat-v1','App actual (desde el 26/10)'],['aq-carga-v1','Versión anterior (hasta el 26/10)'],['aq-carga-demo-v1','Demo']];
+  var dump={fecha:new Date().toISOString(),navegador:navigator.userAgent,pagina:location.href,instalada:!!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||!!navigator.standalone,ls:{},idb:{},espacio:null},resumen=[],html='';
+  function fmt(t){if(!t)return '—';var d=new Date(t);return d.toLocaleDateString('es-AR')+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}
+  function kb(s){return Math.round((s||'').length/1024)+' KB'}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  var nav=/Chrome\//.test(navigator.userAgent)&&!/Edg\//.test(navigator.userAgent)?'Chrome':/Safari\//.test(navigator.userAgent)?'Safari':/Firefox\//.test(navigator.userAgent)?'Firefox':'otro';
+  resumen.push('Diagnóstico AQ Carga · '+fmt(Date.now())+' · '+nav+(dump.instalada?' (app instalada)':''));
+  var ls=null;try{ls=window.localStorage;ls.length}catch(e){ls=null}
+  if(!ls){html+='<div class="box bad"><h3>Este navegador no deja leer los datos guardados</h3><p>Puede ser una ventana privada o una configuración que bloquea el almacenamiento.</p></div>';resumen.push('No se puede leer el almacenamiento (¿ventana privada?)')}
+  else{
+    for(var i=0;i<ls.length;i++){var k=ls.key(i);if(/^aq-/.test(k)){try{dump.ls[k]=ls.getItem(k)}catch(e){}}}
+    var anyWork=false;
+    KEYS.forEach(function(kk){
+      var raw=dump.ls[kk[0]];if(!raw)return;var o=null;try{o=JSON.parse(raw)}catch(e){}
+      if(!o){html+='<div class="box bad"><h3>'+kk[1]+': datos que no se pueden leer</h3><p class="mono">'+kb(raw)+'</p></div>';resumen.push(kk[1]+': ilegible ('+kb(raw)+')');return}
+      var days=o.days||{},dk=Object.keys(days).sort(),plans=dk.filter(function(d){var p=days[d].plan;return p&&p.blocks&&p.blocks.length}),partes=dk.filter(function(d){return days[d].parte}),gps=dk.filter(function(d){var g=days[d].gps;return g&&Object.keys(g).length});
+      var boards=Object.keys(o.boards||{}).map(function(b){return o.boards[b]}),propios=(o.lib||[]).filter(function(l){return l.own||l.user||/^l/.test(l.id||'')&&!l.lib0}).length;
+      var work=plans.length+partes.length+boards.length>0;if(work&&kk[0]!=='aq-carga-demo-v1')anyWork=true;
+      var cls=kk[0]==='aq-carga-demo-v1'?'':work?'ok':'warn';
+      html+='<div class="box '+cls+'"><h3>'+kk[1]+(o.demo?' · datos de ejemplo':'')+'</h3><ul>'+
+        '<li>Equipo: <b>'+esc((o.team&&o.team.name)||'—')+'</b> · '+((o.players||[]).length)+' jugadores</li>'+
+        '<li>Último guardado: <b>'+fmt(o.saved)+'</b></li>'+
+        '<li>Días con programa: <b>'+plans.length+'</b>'+(plans.length?' (último: '+plans[plans.length-1]+')':'')+'</li>'+
+        '<li>Partes cargados: <b>'+partes.length+'</b> · Días con GPS: <b>'+gps.length+'</b></li>'+
+        '<li>Pizarras: <b>'+boards.length+'</b>'+(boards.length?' — '+esc(boards.slice(0,6).map(function(b){return b.name}).join(', '))+(boards.length>6?'…':''):'')+'</li>'+
+        '<li>Ejercicios en la biblioteca: <b>'+((o.lib||[]).length)+'</b></li>'+
+        '<li class="mono">Tamaño: '+kb(raw)+' · versión '+(o.v||1)+'</li></ul></div>';
+      resumen.push(kk[1]+': '+((o.team&&o.team.name)||'')+(o.demo?' (ejemplo)':'')+' · guardado '+fmt(o.saved)+' · programas '+plans.length+' · partes '+partes.length+' · GPS '+gps.length+' · pizarras '+boards.length+' · biblioteca '+((o.lib||[]).length)+' · '+kb(raw));
+    });
+    var mt=null;try{mt=JSON.parse(dump.ls['aq-mt']||'null')}catch(e){}
+    var mtn=0,mtx=[];if(mt)Object.keys(mt).forEach(function(lp){Object.keys(mt[lp]||{}).forEach(function(t){mtn++;if(mtx.length<8&&t.length>3)mtx.push(t)})});
+    html+='<div class="box"><h3>Rastros de trabajo: traducciones guardadas</h3><p>'+(mtn?'<b>'+mtn+'</b> textos escritos a mano y traducidos en este navegador. Ejemplos: <span class="mono">'+esc(mtx.join(' · '))+'</span>':'Ninguno.')+'</p></div>';
+    resumen.push('Traducciones guardadas: '+mtn+(mtx.length?' (ej.: '+mtx.slice(0,4).join(' · ')+')':''));
+    if(!Object.keys(dump.ls).length){html='<div class="box warn"><h3>No hay nada de AQ Carga guardado en este navegador</h3><p>O nunca se usó acá, o se usó en una ventana privada (que borra todo al cerrarse).</p></div>'+html;resumen.push('Sin datos de AQ Carga en este navegador')}
+  }
+  var out=document.getElementById('out');out.innerHTML=html;
+  // imágenes y videos guardados (IndexedDB): solo se cuentan
+  function contar(name){return new Promise(function(res){try{var r=indexedDB.open(name);r.onupgradeneeded=function(){try{r.transaction.abort()}catch(e){}res(null)};r.onerror=function(){res(null)};r.onsuccess=function(){var db=r.result;if(!db.objectStoreNames.contains('img')){db.close();res(0);return}var q=db.transaction('img','readonly').objectStore('img').count();q.onsuccess=function(){db.close();res(q.result)};q.onerror=function(){db.close();res(null)}}}catch(e){res(null)}})}
+  Promise.all(['aq-carga-ajmat','aq-carga'].map(contar)).then(function(c){
+    dump.idb={'aq-carga-ajmat':c[0],'aq-carga':c[1]};
+    var t='Imágenes y videos guardados: app actual '+(c[0]==null?'—':c[0])+' · versión anterior '+(c[1]==null?'—':c[1]);resumen.push(t);
+    out.insertAdjacentHTML('beforeend','<div class="box"><h3>Imágenes y videos</h3><p>'+t.replace('Imágenes y videos guardados: ','')+'</p></div>');
+    return navigator.storage&&navigator.storage.estimate?navigator.storage.estimate():null;
+  }).then(function(e){
+    if(e){dump.espacio={usado:e.usage,cuota:e.quota};var q=Math.round((e.quota||0)/1048576);resumen.push('Espacio: usado '+Math.round((e.usage||0)/1048576)+' MB de '+q+' MB');
+      if(q&&q<200)out.insertAdjacentHTML('beforeend','<div class="box warn"><h3>Espacio muy chico ('+q+' MB)</h3><p>Suele pasar en las ventanas privadas.</p></div>')}
+  }).catch(function(){});
+  function msg(t){document.getElementById('msg').textContent=t}
+  document.getElementById('dl').onclick=function(){
+    dump.resumen=resumen;var b=new Blob([JSON.stringify(dump)],{type:'application/json'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(b);a.download='AQ_diagnostico_'+nav+'_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},2000);msg('Archivo descargado. Mandáselo a Seba.')};
+  document.getElementById('cp').onclick=function(){var t=resumen.join('\n');
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){msg('Resumen copiado. Pegalo en WhatsApp.')},function(){prompt('Copiá este texto:',t)})};
+})();
+</script>
+</body>
+</html>
