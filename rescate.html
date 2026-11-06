@@ -42,7 +42,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 <script>
 /* Diagnóstico: lee el estado guardado de AQ Carga (todas las versiones), las traducciones y las imágenes, y arma un resumen y un archivo. No escribe nada. */
 (function(){
-  var KEYS=[['aq-carga-ajmat-v1','App actual (desde el 26/10)'],['aq-carga-v1','Versión anterior (hasta el 26/10)'],['aq-carga-demo-v1','Demo']];
+  var KEYS=[['aq-carga-ajmat-v1','App actual (desde el 26/10)'],['aq-carga-ajmat-v1-rescate','Datos que la app no pudo abrir (guardados aparte)'],['aq-carga-ajmat-v1-anterior','Datos anteriores a los de ejemplo (guardados aparte)'],['aq-carga-v1','Versión anterior (hasta el 26/10)'],['aq-carga-demo-v1','Demo']];
   var dump={fecha:new Date().toISOString(),navegador:navigator.userAgent,pagina:location.href,instalada:!!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||!!navigator.standalone,ls:{},idb:{},espacio:null},resumen=[],html='';
   function fmt(t){if(!t)return '—';var d=new Date(t);return d.toLocaleDateString('es-AR')+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}
   function kb(s){return Math.round((s||'').length/1024)+' KB'}
@@ -75,14 +75,16 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
     var mtn=0,mtx=[];if(mt)Object.keys(mt).forEach(function(lp){Object.keys(mt[lp]||{}).forEach(function(t){mtn++;if(mtx.length<8&&t.length>3)mtx.push(t)})});
     html+='<div class="box"><h3>Rastros de trabajo: traducciones guardadas</h3><p>'+(mtn?'<b>'+mtn+'</b> textos escritos a mano y traducidos en este navegador. Ejemplos: <span class="mono">'+esc(mtx.join(' · '))+'</span>':'Ninguno.')+'</p></div>';
     resumen.push('Traducciones guardadas: '+mtn+(mtx.length?' (ej.: '+mtx.slice(0,4).join(' · ')+')':''));
+    var reg=null;try{reg=JSON.parse(dump.ls['aq-carga-ajmat-v1-registro']||'null')}catch(e){}
+    if(reg&&reg.length){var last=reg.slice(-15);html+='<div class="box"><h3>Registro de la app (últimos '+last.length+')</h3><ul class="mono">'+last.map(function(r){return '<li>'+esc(fmt(r[0]))+' · '+esc(r[1])+'</li>'}).join('')+'</ul></div>';resumen.push('Registro:');last.forEach(function(r){resumen.push('  '+fmt(r[0])+' · '+r[1])})}
     if(!Object.keys(dump.ls).length){html='<div class="box warn"><h3>No hay nada de AQ Carga guardado en este navegador</h3><p>O nunca se usó acá, o se usó en una ventana privada (que borra todo al cerrarse).</p></div>'+html;resumen.push('Sin datos de AQ Carga en este navegador')}
   }
   var out=document.getElementById('out');out.innerHTML=html;
   // imágenes y videos guardados (IndexedDB): solo se cuentan
-  function contar(name){return new Promise(function(res){try{var r=indexedDB.open(name);r.onupgradeneeded=function(){try{r.transaction.abort()}catch(e){}res(null)};r.onerror=function(){res(null)};r.onsuccess=function(){var db=r.result;if(!db.objectStoreNames.contains('img')){db.close();res(0);return}var q=db.transaction('img','readonly').objectStore('img').count();q.onsuccess=function(){db.close();res(q.result)};q.onerror=function(){db.close();res(null)}}}catch(e){res(null)}})}
-  Promise.all(['aq-carga-ajmat','aq-carga'].map(contar)).then(function(c){
-    dump.idb={'aq-carga-ajmat':c[0],'aq-carga':c[1]};
-    var t='Imágenes y videos guardados: app actual '+(c[0]==null?'—':c[0])+' · versión anterior '+(c[1]==null?'—':c[1]);resumen.push(t);
+  function contar(name,store){store=store||'img';return new Promise(function(res){try{var r=indexedDB.open(name);r.onupgradeneeded=function(){try{r.transaction.abort()}catch(e){}res(null)};r.onerror=function(){res(null)};r.onsuccess=function(){var db=r.result;if(!db.objectStoreNames.contains(store)){db.close();res(0);return}var q=db.transaction(store,'readonly').objectStore(store).count();q.onsuccess=function(){db.close();res(q.result)};q.onerror=function(){db.close();res(null)}}}catch(e){res(null)}})}
+  Promise.all([contar('aq-carga-ajmat'),contar('aq-carga'),contar('aq-carga-copias','copias')]).then(function(c){
+    dump.idb={'aq-carga-ajmat':c[0],'aq-carga':c[1],'aq-carga-copias':c[2]};
+    var t='Imágenes y videos guardados: app actual '+(c[0]==null?'—':c[0])+' · versión anterior '+(c[1]==null?'—':c[1])+' · copias automáticas '+(c[2]==null?'—':c[2]);resumen.push(t);
     out.insertAdjacentHTML('beforeend','<div class="box"><h3>Imágenes y videos</h3><p>'+t.replace('Imágenes y videos guardados: ','')+'</p></div>');
     return navigator.storage&&navigator.storage.estimate?navigator.storage.estimate():null;
   }).then(function(e){
