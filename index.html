@@ -4315,7 +4315,7 @@ If you want to offset all timestamps of a track such that the first one is zero,
       <div class="cl-st" id="cl-st"></div><button class="btn ghost cl-btn" type="button" data-act="clopen">Nube</button>
       <div class="lang wide" role="group" aria-label="Idioma" data-notr><button type="button" data-lang="es" title="Español">ES</button><button type="button" data-lang="en" title="English">EN</button><button type="button" data-lang="ru" title="Русский">RU</button></div>
       <button class="btn ghost" type="button" data-act="datos">Datos y respaldo</button>
-      <p class="ver">Versión <span data-notr>18/11 13:47</span></p>
+      <p class="ver">Versión <span data-notr>19/11 07:34</span></p>
     </div>
   </aside>
   <main class="main">
@@ -19156,5 +19156,28 @@ window.addEventListener('appinstalled',function(){INSTALLP=null;logEv('Instaló 
 
 })();
 </script>
+<style>#aq-nueva{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:99999;display:none;align-items:center;gap:12px;
+max-width:calc(100% - 24px);padding:10px 12px 10px 16px;border-radius:12px;background:#0B7A3B;color:#fff;font:600 15px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+#aq-nueva.on{display:flex}#aq-nueva button{flex:none;border:0;border-radius:8px;padding:8px 14px;background:#fff;color:#0B7A3B;font:700 15px system-ui,-apple-system,sans-serif;cursor:pointer}
+#aq-nueva .x{background:transparent;color:#fff;padding:8px 6px;font-weight:400}</style>
+<div id="aq-nueva" role="status" data-notr><span></span><button type="button" class="ok"></button><button type="button" class="x" aria-label="Cerrar">✕</button></div>
+<script>/* aviso de versión nueva (AQ) */(function(){
+var MIA='aq-carga-app-2026-11-19-0734',PRE='aq-carga-app-';
+if(!/^https?:$/.test(location.protocol)||!('serviceWorker' in navigator)||!window.caches)return;
+var T={es:['Hay una versión nueva de la app.','Actualizar'],en:['A new version of the app is ready.','Update'],ru:['Готова новая версия приложения.','Обновить']};
+function lang(){var l='es';try{l=(window.AQ_I18N&&window.AQ_I18N.lang)||localStorage.getItem('aq-lang')||'es'}catch(e){}return T[l]?l:'es'}
+var box=document.getElementById('aq-nueva'),cerrada=false;
+function mostrar(){if(cerrada)return;var t=T[lang()];box.querySelector('span').textContent=t[0];box.querySelector('.ok').textContent=t[1];box.classList.add('on')}
+box.querySelector('.ok').onclick=function(){box.querySelector('.ok').disabled=true;location.reload()};
+box.querySelector('.x').onclick=function(){cerrada=true;box.classList.remove('on')};
+/* hay versión nueva cuando el aparato ya guardó una más reciente que la que está abierta */
+function revisar(){caches.keys().then(function(ks){if(ks.some(function(k){return k.indexOf(PRE)===0&&k>MIA}))mostrar()}).catch(function(){})}
+function buscar(){if(!navigator.onLine)return;navigator.serviceWorker.getRegistration().then(function(r){if(r)return r.update()}).catch(function(){}).then(function(){setTimeout(revisar,1500)})}
+navigator.serviceWorker.addEventListener('controllerchange',function(){setTimeout(revisar,500)});
+window.addEventListener('online',function(){setTimeout(buscar,2000)});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')buscar()});
+setTimeout(revisar,3000);setTimeout(buscar,8000);setInterval(buscar,30*60*1000);
+window.AQ_VERSION_NUEVA={revisar:revisar,buscar:buscar,mia:MIA};
+})();</script>
 </body>
 </html>
