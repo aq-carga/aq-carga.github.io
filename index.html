@@ -4315,7 +4315,7 @@ If you want to offset all timestamps of a track such that the first one is zero,
       <div class="cl-st" id="cl-st"></div><button class="btn ghost cl-btn" type="button" data-act="clopen">Nube</button>
       <div class="lang wide" role="group" aria-label="Idioma" data-notr><button type="button" data-lang="es" title="Español">ES</button><button type="button" data-lang="en" title="English">EN</button><button type="button" data-lang="ru" title="Русский">RU</button></div>
       <button class="btn ghost" type="button" data-act="datos">Datos y respaldo</button>
-      <p class="ver">Versión <span data-notr>19/11 07:34</span></p>
+      <p class="ver">Versión <span data-notr>19/11 08:19</span></p>
     </div>
   </aside>
   <main class="main">
@@ -13812,7 +13812,7 @@ function utHtml(){var V=utV(),U=UT;
   var mo='<div class="ut-mode" role="group" aria-label="Para qué es el pedido"><button type="button" data-act="utmode" data-v="ent" aria-pressed="'+!V+'">Entrenamiento</button><button type="button" data-act="utmode" data-v="via" aria-pressed="'+V+'">Viaje</button></div>';
   var nn='<div class="ch-r2"><label class="ch-f"><span>'+(V?'Convocados de campo':'Jugadores de campo')+'</span><input class="ch-in" type="number" inputmode="numeric" min="0" data-inp="utn" data-k="np" value="'+(+U.np||0)+'"></label><label class="ch-f"><span>Arqueros</span><input class="ch-in" type="number" inputmode="numeric" min="0" data-inp="utn" data-k="ng" value="'+(+U.ng||0)+'"></label></div>'+
     '<p class="ch-hint">Las prendas marcadas “uno por…” se ajustan solas cuando cambiás estos números.</p>';
-  var hd=V?'<section class="ch-card"><p class="ch-lb">'+(U.kind==='conc'?'La concentración':'El viaje')+'</p>'+utIn('Partido','title','','vs Rosario Central','big')+utIn('Torneo y día del partido','md','','Liga · domingo 9 · 17:00 h')+utIn('Destino u hotel','place','','Rosario · hotel')+
+  var hd=V?'<section class="ch-card"><p class="ch-lb">'+(U.kind==='conc'?'La concentración':'El viaje')+'</p>'+utIn('Partido','title','','vs CSKA Moscú','big')+utIn('Torneo y día del partido','md','','Liga · domingo 9 · 17:00 h')+utIn('Destino u hotel','place','','Rosario · hotel')+
       '<div class="ut-r3">'+utIn('Fecha de salida','date','date')+utIn('Salida','train','time')+utIn('Todo cargado a las','ready','time')+'</div>'+nn+
       '<button class="ch-link" type="button" data-act="utday">Traer del próximo partido</button></section>'
     :'<section class="ch-card"><p class="ch-lb">El día</p><div class="ch-r2">'+utIn('Fecha','date','date')+utIn('MD','md','','MD−2')+'</div>'+utIn('Sesión','title','','Velocidad y finalización','big')+utIn('Lugar','place','','Predio · campo 2 y gimnasio')+
@@ -16014,7 +16014,7 @@ Object.assign(INP,{
 /* ═════ Pizarra táctica con el plantel y el rival.
    1. El plantel completo con foto y nombre al costado (compu) o abajo (celular). Se arrastran a la cancha, o se toca la foto
       y después la cancha. La ficha es el jugador de siempre (['p', x, y, color, número]) con el id del jugador en [5].
-   2. El rival: las camisetas de los 30 clubes de la Liga Profesional (o colores a elección), numeradas, con nombre opcional.
+   2. El rival: las camisetas de los clubes de la Liga Premier rusa (o colores a elección), numeradas, con nombre opcional.
       Son camisetas genéricas en los colores y el diseño de cada club, sin escudo ni sponsor. La ficha es
       ['p', x, y, 'x:club', número, '', nombre]: el color es un código de rival, así anima en 3D con su camiseta.
    3. Vistas de cancha: entera, tres cuartos, media cancha y el área para la pelota parada (arco arriba o abajo).
@@ -16041,36 +16041,25 @@ function pbBig(){if(PB.big==null)PB.big=!!uiGet('pbBig',false);return PB.big}
    [id, nombre, diseño, color 1, color 2, pantalón, medias]. Diseños: lisa, bastones (st), franja (band), banda (sash),
    mitades (halves), V (vee) y mangas de otro color (sleeves). Los colores van sin numeral a propósito. */
 var PB_KITS=[
-  ['aldosivi','Aldosivi','st','F2C200','0B7A3C','0B7A3C','0B7A3C'],
-  ['argentinos','Argentinos Juniors','solid','D2172A','FFFFFF','FFFFFF','D2172A'],
-  ['atl-tucuman','Atlético Tucumán','st','FFFFFF','6CB4E4','13294B','13294B'],
-  ['banfield','Banfield','st','FFFFFF','0E7A3E','FFFFFF','FFFFFF'],
-  ['barracas','Barracas Central','st','FFFFFF','D21F2B','15181B','D21F2B'],
-  ['belgrano','Belgrano','solid','74B8E6','FFFFFF','15181B','74B8E6'],
-  ['boca','Boca Juniors','band','0B3A8F','F5C400','0B2A63','0B2A63'],
-  ['central-cordoba','Central Córdoba (SdE)','st','FFFFFF','15181B','15181B','15181B'],
-  ['defensa','Defensa y Justicia','sleeves','F5CF00','0B7A3E','0B7A3E','F5CF00'],
-  ['riestra','Deportivo Riestra','solid','141517','FFFFFF','141517','141517'],
-  ['estudiantes','Estudiantes (LP)','st','FFFFFF','D0202E','15181B','D0202E'],
-  ['gimnasia','Gimnasia (LP)','band','FFFFFF','0C2A5C','0C2A5C','FFFFFF'],
-  ['godoy-cruz','Godoy Cruz','st','FFFFFF','1B3E8F','1B3E8F','1B3E8F'],
-  ['huracan','Huracán','solid','FFFFFF','D3202F','FFFFFF','FFFFFF'],
-  ['independiente','Independiente','solid','D6182A','FFFFFF','0E2A5A','D6182A'],
-  ['ind-rivadavia','Independiente Rivadavia','solid','15367C','FFFFFF','15367C','15367C'],
-  ['instituto','Instituto','st','FFFFFF','D3202E','15181B','D3202E'],
+  ['akron','Akron Togliatti','solid','1B2E6E','F5C400','1B2E6E','1B2E6E'],
   ['ajmat','Ajmat','solid','0B7A3B','FFFFFF','0B7A3B','0B7A3B'],
-  ['newells','Newell\'s Old Boys','halves','D3202F','15181B','15181B','15181B'],
-  ['platense','Platense','band','FFFFFF','6B3E26','6B3E26','FFFFFF'],
-  ['racing','Racing Club','st','FFFFFF','74B8E6','15181B','FFFFFF'],
-  ['river','River Plate','sash','FFFFFF','E1192C','15181B','FFFFFF'],
-  ['rosario-central','Rosario Central','st','F5C400','1B3B8C','1B3B8C','1B3B8C'],
-  ['san-lorenzo','San Lorenzo','st','16307A','C8102E','16307A','16307A'],
-  ['san-martin-sj','San Martín (SJ)','st','0B6B35','15181B','15181B','15181B'],
-  ['sarmiento','Sarmiento','solid','0E7A3A','FFFFFF','FFFFFF','0E7A3A'],
-  ['talleres','Talleres','st','FFFFFF','13295C','13295C','13295C'],
-  ['tigre','Tigre','band','13307A','D3202F','13307A','13307A'],
-  ['union','Unión','st','FFFFFF','D3202F','15181B','D3202F'],
-  ['velez','Vélez Sarsfield','vee','FFFFFF','1B3E8F','1B3E8F','FFFFFF']];
+  ['baltika','Baltika Kaliningrado','band','1E88D2','FFFFFF','FFFFFF','1E88D2'],
+  ['cska','CSKA Moscú','halves','C8102E','1A3E8F','1A3E8F','C8102E'],
+  ['dinamo-mjk','Dinamo Majachkalá','sleeves','1E5AA8','FFFFFF','FFFFFF','1E5AA8'],
+  ['dinamo','Dinamo Moscú','solid','1B3E8F','FFFFFF','FFFFFF','1B3E8F'],
+  ['fakel','Fakel Vorónezh','st','1B3E8F','FFFFFF','1B3E8F','1B3E8F'],
+  ['jimki','Jimki','st','D71920','15181B','15181B','D71920'],
+  ['krasnodar','Krasnodar','st','15181B','0B7A3E','15181B','15181B'],
+  ['krylia','Krylia Sovetov','solid','1B4E9B','FFFFFF','FFFFFF','1B4E9B'],
+  ['lokomotiv','Lokomotiv Moscú','band','C8102E','0B7A3E','C8102E','C8102E'],
+  ['orenburg','Orenburg','vee','FFFFFF','1B4E9B','1B4E9B','FFFFFF'],
+  ['pari-nn','Pari Nizhni Nóvgorod','halves','1E5AA8','15181B','15181B','15181B'],
+  ['rodina','Rodina Moscú','solid','FFFFFF','C8102E','1B3E8F','FFFFFF'],
+  ['rostov','Rostov','solid','F5C400','1B3E8F','1B3E8F','F5C400'],
+  ['rubin','Rubin Kazán','solid','9B1B30','0B6B35','9B1B30','9B1B30'],
+  ['sochi','Sochi','st','1E88D2','15181B','15181B','1E88D2'],
+  ['spartak','Spartak Moscú','band','D71920','FFFFFF','FFFFFF','D71920'],
+  ['zenit','Zenit','solid','2A8FD8','FFFFFF','FFFFFF','2A8FD8']];
 var PB_PATS=[['solid','Lisa'],['st','Bastones'],['band','Franja'],['sash','Banda'],['halves','Mitades'],['vee','V'],['sleeves','Mangas']];
 var PB_KM={};
 function pbKitMk(id,n,p,a,b,s,k){var K={id:id,n:n,p:p,a:'#'+a,b:'#'+b,s:'#'+(s||a),k:'#'+(k||a)};K.j=p==='st'&&a==='FFFFFF'?K.b:K.a;return K}
@@ -16245,7 +16234,7 @@ var PB_NOM=' agustin alan alberto alejandro alex alexander alexis alfredo andres
 function pbPlain(w){return String(w||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
 function pbSurname(n){var w=String(n||'').replace(/[".]+$/,'').replace(/\s+/g,' ').trim().split(' ');while(w.length>1&&PB_NOM.indexOf(' '+pbPlain(w[0])+' ')>-1)w.shift();return w.join(' ').slice(0,18)}
 /* formación pegada: un jugador por renglón con su número ("9 Cavani", "Cavani 9", "9. Cavani"), o la de los diarios
-   ("Boca: Marchesín; Advíncula, Costa…; DT: …"). Sin números, van del 1 en adelante en el orden pegado. */
+   ("Zenit: Ivanov; Petrov, Smirnov…; DT: …"). Sin números, van del 1 en adelante en el orden pegado. */
 function pbParse(t){var parts=String(t||'').replace(/\r/g,'').replace(/([A-Za-zÁÉÍÓÚÑáéíóúñü])\.\s+/g,'$1\n').split(/\n|;|,|·/),out=[],stop=false;
   parts.forEach(function(s){if(stop)return;s=s.replace(/\s+/g,' ').trim();if(!s)return;
     if(/^(dt|d\.t\.?|director t[eé]cnico|entrenador|suplentes|cambios|goles|[aá]rbitro|estadio|incidencias|amonestados|expulsados)\b/i.test(s)){stop=true;return}
@@ -16282,7 +16271,7 @@ function pbList(){var tab=PB.tab==='rv'?'rv':'pl',on={},n=0,rn=0,ron={},rc=pbRvC
       if(ed==='type'){h+='<div class="pb-ed" role="group" aria-label="'+esc(TR('Números y apellidos del rival'))+'"><div class="pb-er pb-eh"><span>'+TR('N.º')+'</span><span>'+TR('Apellido')+'</span><span></span></div>'+ros.map(function(q,i){
           return '<div class="pb-er"><input class="in pb-en" type="text" inputmode="numeric" maxlength="3" data-inp="pbros" data-chg="pbrosn" data-i="'+i+'" data-f="0" value="'+esc(q[0])+'" aria-label="'+esc(TR('Número'))+'"><input class="in pb-em" type="text" maxlength="18" autocomplete="off" autocapitalize="words" data-inp="pbros" data-i="'+i+'" data-f="1" value="'+esc(q[1])+'" placeholder="'+esc(TR('Apellido'))+'" aria-label="'+esc(TR('Apellido del')+' '+q[0])+'"><button type="button" class="pb-ex" data-act="pbrdel" data-i="'+i+'" aria-label="'+esc(TR('Quitar'))+'">×</button></div>'}).join('')+
           '<div class="pb-eacts"><button type="button" class="btn sm" data-act="pbradd">+ '+TR('Agregar')+'</button><button type="button" class="btn sm ghost" data-act="pbrclr" data-confirm="'+esc(TR('Confirmar: borrar los apellidos'))+'">'+TR('Borrar apellidos')+'</button><button type="button" class="btn sm pri" data-act="pbed" data-v="">'+TR('Listo')+'</button></div></div>'}
-      else if(ed==='paste'){h+='<div class="pb-ed"><textarea class="in pb-paste" id="pb-paste" rows="7" placeholder="'+esc(TR('Un jugador por renglón, con su número:')+'\n1 Marchesín\n4 Advíncula\n2 Costa\n…\n'+TR('También sirve la formación de un diario, separada por comas.'))+'" aria-label="'+esc(TR('Formación del rival'))+'"></textarea>'+
+      else if(ed==='paste'){h+='<div class="pb-ed"><textarea class="in pb-paste" id="pb-paste" rows="7" placeholder="'+esc(TR('Un jugador por renglón, con su número:')+'\n1 Ivanov\n4 Petrov\n2 Smirnov\n…\n'+TR('También sirve la formación de un diario, separada por comas.'))+'" aria-label="'+esc(TR('Formación del rival'))+'"></textarea>'+
           '<div class="pb-eacts"><button type="button" class="btn sm ghost" data-act="pbed" data-v="">'+TR('Cancelar')+'</button><button type="button" class="btn sm pri" data-act="pbpaste">'+TR('Cargar la lista')+'</button></div></div>'}
       else{h+='<div class="pb-scroll pb-kscroll"><div class="pb-krow">'+ros.map(function(q,i){var id='k|'+rc+'|#'+i;
           return '<button type="button" class="pb-c pb-k'+(ron[q[0]]?' on':'')+(arm===id?' arm':'')+'" data-act="pbarm" data-id="'+esc(id)+'" title="'+esc(q[1]||'')+'" aria-label="'+esc(K.n+' '+q[0]+(q[1]?' '+q[1]:''))+'" aria-pressed="'+(arm===id)+'"><img src="'+pbShirtURL(rc,q[0])+'" alt=""><span class="pb-n">'+(q[1]?esc(q[1]):'&nbsp;')+'</span></button>'}).join('');
@@ -19162,7 +19151,7 @@ max-width:calc(100% - 24px);padding:10px 12px 10px 16px;border-radius:12px;backg
 #aq-nueva .x{background:transparent;color:#fff;padding:8px 6px;font-weight:400}</style>
 <div id="aq-nueva" role="status" data-notr><span></span><button type="button" class="ok"></button><button type="button" class="x" aria-label="Cerrar">✕</button></div>
 <script>/* aviso de versión nueva (AQ) */(function(){
-var MIA='aq-carga-app-2026-11-19-0734',PRE='aq-carga-app-';
+var MIA='aq-carga-app-2026-11-19-0819',PRE='aq-carga-app-';
 if(!/^https?:$/.test(location.protocol)||!('serviceWorker' in navigator)||!window.caches)return;
 var T={es:['Hay una versión nueva de la app.','Actualizar'],en:['A new version of the app is ready.','Update'],ru:['Готова новая версия приложения.','Обновить']};
 function lang(){var l='es';try{l=(window.AQ_I18N&&window.AQ_I18N.lang)||localStorage.getItem('aq-lang')||'es'}catch(e){}return T[l]?l:'es'}
